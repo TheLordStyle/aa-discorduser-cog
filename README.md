@@ -59,9 +59,12 @@ available in this channel"*; prefix: 👎 reaction).
 > &nbsp;&nbsp;↳ roles: Guest
 
 Each member is rendered as a real Discord mention (`<@id>`), so you can
-right-click them straight from the list to kick, ban, or manage roles.
-Mentions inside an embed are clickable but **don't** fire a notification, so
-running the report doesn't ping everyone it lists.
+right-click them straight from the list to kick, ban, or manage roles. The
+report is sent as plain message text (not an embed) precisely so the mentions
+resolve reliably — mentions inside an embed only become clickable pills when
+the viewer's client already has that user cached, which is why some show up as
+a raw `<@id>`. Pings are suppressed via `allowed_mentions`, so running the
+report doesn't notify everyone it lists.
 
 ## Requirements
 
@@ -130,7 +133,7 @@ production state always returns to whatever's pinned in `requirements.txt`.
 /discordcheck
 ```
 
-Both forms post the report in the channel (paginated into multiple embeds when
+Both forms post the report in the channel (split across multiple messages when
 long). The report runs against every guild configured for the bot
 (`get_all_servers()`), de-duplicating members who share more than one.
 

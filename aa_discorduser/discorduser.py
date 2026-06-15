@@ -23,7 +23,7 @@ import logging
 import re
 
 from aadiscordbot.app_settings import get_all_servers
-from discord.embeds import Embed
+from discord import AllowedMentions
 from discord.ext import commands
 
 from django.conf import settings
@@ -206,8 +206,13 @@ def _fmt_not_in_auth(r) -> str:
     return f"• <@{r['discord_id']}>{_fmt_roles(r)}"
 
 
-# Discord's embed-description hard cap is 4096; keep blocks well under it.
-_MAX_BLOCK = 3500
+# A single message's content hard cap is 2000 chars. We render the report as
+# message content (not embeds) so that user mentions reliably resolve to
+# clickable pills — mentions inside an embed only render when the viewer's
+# client already has the user cached. Keep each block well under the cap so a
+# block always fits in one message.
+_MSG_LIMIT = 1950
+_MAX_BLOCK = 1800
 
 
 def _chunk_section(header, lines):
@@ -228,7 +233,7 @@ def _chunk_section(header, lines):
 
 
 def _build_blocks(report):
-    blocks = []
+    blocks = [f"__**{_TITLE}**__"]
 
     summary = (
         f"**Scanned {report['total']} Discord member(s)** — "
@@ -257,40 +262,32 @@ def _build_blocks(report):
     return blocks
 
 
-def _build_embeds(blocks, title):
-    """Paginate pre-formatted text blocks into Discord embeds, capped at
-    3900 chars per description with an ``(i/N)`` suffix when split."""
+def _build_messages(blocks):
+    """Pack pre-formatted text blocks into message-content strings, each kept
+    under ``_MSG_LIMIT`` so every message sends in one piece and its mentions
+    resolve as clickable pills."""
     if not blocks:
-        return [Embed(
-            title=title,
-            description="Nothing to report.",
-            colour=0x2ECC71,
-        )]
+        return ["Nothing to report."]
 
     pages, buf, size = [], [], 0
     for block in blocks:
-        if size + len(block) + 2 > 3900 and buf:
+        if size + len(block) + 2 > _MSG_LIMIT and buf:
             pages.append("\n\n".join(buf))
             buf, size = [], 0
         buf.append(block)
         size += len(block) + 2
     if buf:
         pages.append("\n\n".join(buf))
-
-    # A single, single-line page means the summary only — nothing flagged.
-    clean = len(pages) == 1 and "\n" not in pages[0]
-    colour = 0x2ECC71 if clean else 0xE67E22
-
-    out = []
-    for i, desc in enumerate(pages, 1):
-        page_title = title + (f" ({i}/{len(pages)})" if len(pages) > 1 else "")
-        out.append(Embed(title=page_title, description=desc, colour=colour))
-    return out
+    return pages
 
 
 # ---- The cog ----------------------------------------------------------------
 
 _TITLE = "Discord members not set up for Discord in Auth"
+
+# Render mentions as clickable pills without actually notifying anyone — the
+# report shouldn't ping the dozens of people it lists.
+_NO_PING = AllowedMentions.none()
 
 
 class DiscordUserCheck(commands.Cog):
@@ -302,18 +299,15 @@ class DiscordUserCheck(commands.Cog):
     async def _run_and_reply(self, send):
         members = await _gather_members(self.bot)
         if not members:
-            return await send([Embed(
-                title=_TITLE,
-                description=(
-                    "No guild members are visible. Check that the bot has the "
-                    "**Server Members Intent** enabled and the guild id is "
-                    "configured."
-                ),
-                colour=0xE74C3C,
-            )])
+            return await send([
+                f"__**{_TITLE}**__\n"
+                "No guild members are visible. Check that the bot has the "
+                "**Server Members Intent** enabled and the guild id is "
+                "configured."
+            ])
         report = _classify(members)
-        embeds = _build_embeds(_build_blocks(report), _TITLE)
-        await send(embeds)
+        messages = _build_messages(_build_blocks(report))
+        await send(messages)
 
     # ---- prefix --------------------------------------------------------
 
@@ -324,9 +318,9 @@ class DiscordUserCheck(commands.Cog):
         if not _channel_allowed(ctx.message.channel.id):
             return await ctx.message.add_reaction(chr(0x1F44E))  # 👎
 
-        async def send(embeds):
-            for e in embeds:
-                await ctx.message.reply(embed=e)
+        async def send(messages):
+            for m in messages:
+                await ctx.message.reply(m, allowed_mentions=_NO_PING)
 
         try:
             await self._run_and_reply(send)
@@ -349,10 +343,10 @@ class DiscordUserCheck(commands.Cog):
 
         await ctx.defer()
 
-        async def send(embeds):
-            await ctx.respond(embed=embeds[0])
-            for e in embeds[1:]:
-                await ctx.followup.send(embed=e)
+        async def send(messages):
+            await ctx.respond(messages[0], allowed_mentions=_NO_PING)
+            for m in messages[1:]:
+                await ctx.followup.send(m, allowed_mentions=_NO_PING)
 
         try:
             await self._run_and_reply(send)
