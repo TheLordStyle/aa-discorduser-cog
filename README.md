@@ -61,12 +61,25 @@ available in this channel"*; prefix: 👎 reaction).
 The report leads with a coloured **embed header** carrying the title and the
 scan summary, followed by the member list as plain message text. Each member
 is rendered as a real Discord mention (`<@id>`), so you can right-click them
-straight from the list to kick, ban, or manage roles. The list is sent as
-message content rather than inside the embed precisely so the mentions resolve
-reliably — mentions inside an embed only become clickable pills when the
-viewer's client already has that user cached, which is why some would
-otherwise show up as a raw `<@id>`. Pings are suppressed via
-`allowed_mentions`, so running the report doesn't notify everyone it lists.
+straight from the list to kick, ban, or manage roles.
+
+To make those mentions resolve to **named** pills for everyone (not just the
+members your client happens to have cached), the messages allow user mentions
+via `allowed_mentions` — Discord only attaches a mention to a message, and so
+lets the client resolve it without its own cache, when the mention is allowed.
+Two important consequences:
+
+- A mention inside an **embed** is never resolvable this way, which is why the
+  member list is sent as message **content**, not in the embed.
+- Allowing the mention means Discord *will* deliver a notification — but
+  **only to users who can read the channel**. Run the command in a
+  **private/staff-only channel** (which is the whole point of
+  `DISCORDUSER_DISCORD_BOT_CHANNELS`) and the flagged members — who can't see
+  that channel — are **not** pinged. `@everyone`, `@here` and role pings stay
+  disabled regardless.
+
+> ⚠️ If you point `DISCORDUSER_DISCORD_BOT_CHANNELS` at a channel the flagged
+> members *can* see, running the report will ping them. Keep it private.
 
 ## Requirements
 
@@ -126,7 +139,7 @@ production state always returns to whatever's pinned in `requirements.txt`.
 
 | Setting | Default | Description |
 |---|---|---|
-| `DISCORDUSER_DISCORD_BOT_CHANNELS` | `[]` | Channel allow-list (list of channel ids). The command only runs in these channels; empty/unset blocks it everywhere. |
+| `DISCORDUSER_DISCORD_BOT_CHANNELS` | `[]` | Channel allow-list (list of channel ids). The command only runs in these channels; empty/unset blocks it everywhere. **Use a private/staff-only channel** — the report mentions each listed member, and members who can see the channel would be notified. |
 
 ## Usage
 
@@ -167,6 +180,10 @@ de-duplicating members who share more than one.
 - **Discord-side only.** The cog answers "who's in the server without the
   service", not the inverse ("who has the service but already left the
   server").
+- **Run it in a private channel.** Each listed member is a real mention. No
+  notification reaches a member who can't read the channel, so a staff-only
+  channel keeps the report ping-free — but a channel the flagged members can
+  see *would* ping them.
 
 ## Contributing
 

@@ -27,9 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Each member is rendered as a real Discord mention (`<@id>`) so you can
   right-click them directly from the report to take action. The report leads
   with a coloured embed header (title + scan summary) and sends the member
-  list as plain message content so the mentions resolve reliably for every
-  listed member — mentions inside an embed only render as pills when the
-  viewer's client already has the user cached. Pings are suppressed via
-  `allowed_mentions`, so the report doesn't notify everyone it lists.
+  list as plain message content. User mentions are allowed via
+  `allowed_mentions` (but not `@everyone`/`@here`/roles) so every listed member
+  resolves to a **named** pill regardless of the viewer's member cache —
+  mentions are only resolvable when allowed, and mentions inside an embed never
+  are. Discord only delivers a mention notification to users who can read the
+  channel, so running the command in a private/staff-only channel (the purpose
+  of `DISCORDUSER_DISCORD_BOT_CHANNELS`) keeps the report ping-free.
 - Channel allow-list via `DISCORDUSER_DISCORD_BOT_CHANNELS`; the command
   silently refuses everywhere else (slash: ephemeral notice; prefix: 👎).

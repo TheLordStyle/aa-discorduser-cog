@@ -285,9 +285,16 @@ def _build_messages(blocks):
 
 _TITLE = "Discord members not set up for Discord in Auth"
 
-# Render mentions as clickable pills without actually notifying anyone — the
-# report shouldn't ping the dozens of people it lists.
-_NO_PING = AllowedMentions.none()
+# Allow *user* mentions so every listed member resolves to a proper named,
+# right-clickable pill regardless of the viewer's member cache — a mention is
+# only attached to the message (and thus resolvable by the client) when it's
+# allowed. @everyone/@here and role pings stay disabled.
+#
+# Notifications are still gated by channel visibility: Discord only delivers a
+# mention notification to someone who can read the channel. Run the command in
+# a private/staff-only channel (that's what DISCORDUSER_DISCORD_BOT_CHANNELS is
+# for) and the flagged members — who can't see it — won't be pinged.
+_MENTIONS = AllowedMentions(everyone=False, roles=False, users=True)
 
 
 class DiscordUserCheck(commands.Cog):
@@ -333,7 +340,7 @@ class DiscordUserCheck(commands.Cog):
         async def send(header, messages):
             await ctx.message.reply(embed=header)
             for m in messages:
-                await ctx.message.reply(m, allowed_mentions=_NO_PING)
+                await ctx.message.reply(m, allowed_mentions=_MENTIONS)
 
         try:
             await self._run_and_reply(send)
@@ -359,7 +366,7 @@ class DiscordUserCheck(commands.Cog):
         async def send(header, messages):
             await ctx.respond(embed=header)
             for m in messages:
-                await ctx.followup.send(m, allowed_mentions=_NO_PING)
+                await ctx.followup.send(m, allowed_mentions=_MENTIONS)
 
         try:
             await self._run_and_reply(send)
