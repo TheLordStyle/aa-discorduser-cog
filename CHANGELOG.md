@@ -21,5 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Not matched to auth** (no character match), with a per-account note
   when the matched auth account has the Discord service linked to a
   different Discord id.
+- Each listed member shows their current Discord roles (excluding the
+  implicit `@everyone`), highest-position first, so you can see what access
+  they still hold.
 - Channel allow-list via `DISCORDUSER_DISCORD_BOT_CHANNELS`; the command
   silently refuses everywhere else (slash: ephemeral notice; prefix: 👎).

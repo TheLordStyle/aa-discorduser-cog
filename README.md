@@ -48,11 +48,15 @@ available in this channel"*; prefix: 👎 reaction).
 >
 > **🟧 In auth, no Discord service (4)** — nickname matches a known character, but the Discord service isn't active (never enabled or removed)
 > • [TICK] Bob McAuthed (`123456789012345678`) — matches **Bob McAuthed**, authed as `bob`, but no active Discord service
+> &nbsp;&nbsp;↳ roles: Member, Fleet Commander
 > • Carol Quit (`223456789012345678`) — matches **Carol Quit**, authed as `carol`, but no active Discord service  ⚠️ *(service is linked to a different Discord account)*
+> &nbsp;&nbsp;↳ roles: Member
 >
 > **🟥 Not matched to auth (6)** — on Discord but no character match (likely never authed, or nickname isn't their character name)
 > • randomuser99 (`323456789012345678`)
+> &nbsp;&nbsp;↳ roles: *none*
 > • Some Friend (`423456789012345678`)
+> &nbsp;&nbsp;↳ roles: Guest
 
 ## Requirements
 

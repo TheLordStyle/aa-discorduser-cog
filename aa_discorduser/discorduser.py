@@ -78,6 +78,15 @@ async def _gather_members(bot):
 _TICKER_PREFIX = re.compile(r"^\s*[\[(][^\])]*[\])]\s*")
 
 
+def _member_roles(member) -> list:
+    """Role names for a member, excluding the implicit ``@everyone`` default,
+    ordered highest-position first (the way Discord shows them)."""
+    return [
+        r.name for r in sorted(member.roles, key=lambda r: r.position, reverse=True)
+        if not r.is_default()
+    ]
+
+
 def _candidate_character_name(member) -> str:
     """Best-effort guess of the EVE character name behind a Discord member.
 
@@ -154,6 +163,7 @@ def _classify(members):
             "discord_id": m.id,
             "display": m.display_name,
             "candidate": cand,
+            "roles": _member_roles(m),
         }
         if user_id is None:
             not_in_auth.append(entry)
@@ -175,6 +185,11 @@ def _classify(members):
 
 # ---- Formatting -------------------------------------------------------------
 
+def _fmt_roles(r) -> str:
+    roles = r.get("roles") or []
+    return f"\n  ↳ roles: {', '.join(roles)}" if roles else "\n  ↳ roles: *none*"
+
+
 def _fmt_no_service(r) -> str:
     suffix = (
         "  ⚠️ *(service is linked to a different Discord account)*"
@@ -183,11 +198,12 @@ def _fmt_no_service(r) -> str:
     return (
         f"• {r['display']} (`{r['discord_id']}`) — matches **{r['candidate']}**, "
         f"authed as `{r['auth_user']}`, but no active Discord service{suffix}"
+        f"{_fmt_roles(r)}"
     )
 
 
 def _fmt_not_in_auth(r) -> str:
-    return f"• {r['display']} (`{r['discord_id']}`)"
+    return f"• {r['display']} (`{r['discord_id']}`){_fmt_roles(r)}"
 
 
 # Discord's embed-description hard cap is 4096; keep blocks well under it.
