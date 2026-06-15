@@ -196,14 +196,14 @@ def _fmt_no_service(r) -> str:
         if r.get("other_link") else ""
     )
     return (
-        f"• {r['display']} (`{r['discord_id']}`) — matches **{r['candidate']}**, "
+        f"• <@{r['discord_id']}> — matches **{r['candidate']}**, "
         f"authed as `{r['auth_user']}`, but no active Discord service{suffix}"
         f"{_fmt_roles(r)}"
     )
 
 
 def _fmt_not_in_auth(r) -> str:
-    return f"• {r['display']} (`{r['discord_id']}`){_fmt_roles(r)}"
+    return f"• <@{r['discord_id']}>{_fmt_roles(r)}"
 
 
 # Discord's embed-description hard cap is 4096; keep blocks well under it.

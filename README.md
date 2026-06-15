@@ -47,16 +47,21 @@ available in this channel"*; prefix: 👎 reaction).
 > **Scanned 412 Discord member(s)** — 🟩 389 with service, 🟧 4 in auth without service, 🟥 6 not matched to auth (13 bot(s) ignored)
 >
 > **🟧 In auth, no Discord service (4)** — nickname matches a known character, but the Discord service isn't active (never enabled or removed)
-> • [TICK] Bob McAuthed (`123456789012345678`) — matches **Bob McAuthed**, authed as `bob`, but no active Discord service
+> • @Bob McAuthed — matches **Bob McAuthed**, authed as `bob`, but no active Discord service
 > &nbsp;&nbsp;↳ roles: Member, Fleet Commander
-> • Carol Quit (`223456789012345678`) — matches **Carol Quit**, authed as `carol`, but no active Discord service  ⚠️ *(service is linked to a different Discord account)*
+> • @Carol Quit — matches **Carol Quit**, authed as `carol`, but no active Discord service  ⚠️ *(service is linked to a different Discord account)*
 > &nbsp;&nbsp;↳ roles: Member
 >
 > **🟥 Not matched to auth (6)** — on Discord but no character match (likely never authed, or nickname isn't their character name)
-> • randomuser99 (`323456789012345678`)
+> • @randomuser99
 > &nbsp;&nbsp;↳ roles: *none*
-> • Some Friend (`423456789012345678`)
+> • @Some Friend
 > &nbsp;&nbsp;↳ roles: Guest
+
+Each member is rendered as a real Discord mention (`<@id>`), so you can
+right-click them straight from the list to kick, ban, or manage roles.
+Mentions inside an embed are clickable but **don't** fire a notification, so
+running the report doesn't ping everyone it lists.
 
 ## Requirements
 

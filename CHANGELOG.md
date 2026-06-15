@@ -24,5 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Each listed member shows their current Discord roles (excluding the
   implicit `@everyone`), highest-position first, so you can see what access
   they still hold.
+- Each member is rendered as a real Discord mention (`<@id>`) so you can
+  right-click them directly from the report to take action. Mentions inside
+  an embed are clickable but don't fire a notification, so the report doesn't
+  ping everyone it lists.
 - Channel allow-list via `DISCORDUSER_DISCORD_BOT_CHANNELS`; the command
   silently refuses everywhere else (slash: ephemeral notice; prefix: 👎).
