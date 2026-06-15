@@ -24,6 +24,7 @@ import re
 
 from aadiscordbot.app_settings import get_all_servers
 from discord import AllowedMentions
+from discord.embeds import Embed
 from discord.ext import commands
 
 from django.conf import settings
@@ -232,19 +233,20 @@ def _chunk_section(header, lines):
     return chunks
 
 
-def _build_blocks(report):
-    blocks = [f"__**{_TITLE}**__"]
-
+def _build_summary(report) -> str:
     summary = (
-        f"**Scanned {report['total']} Discord member(s)** — "
+        f"Scanned **{report['total']}** Discord member(s) — "
         f"🟩 {report['ok_count']} with service, "
         f"🟧 {len(report['no_service'])} in auth without service, "
         f"🟥 {len(report['not_in_auth'])} not matched to auth"
     )
     if report["bot_count"]:
         summary += f" ({report['bot_count']} bot(s) ignored)"
-    blocks.append(summary)
+    return summary
 
+
+def _build_member_blocks(report):
+    blocks = []
     if report["no_service"]:
         blocks.extend(_chunk_section(
             f"**🟧 In auth, no Discord service ({len(report['no_service'])})** — "
@@ -265,10 +267,8 @@ def _build_blocks(report):
 def _build_messages(blocks):
     """Pack pre-formatted text blocks into message-content strings, each kept
     under ``_MSG_LIMIT`` so every message sends in one piece and its mentions
-    resolve as clickable pills."""
-    if not blocks:
-        return ["Nothing to report."]
-
+    resolve as clickable pills. Returns an empty list when there are no
+    blocks (the summary embed already conveys an all-clear)."""
     pages, buf, size = [], [], 0
     for block in blocks:
         if size + len(block) + 2 > _MSG_LIMIT and buf:
@@ -299,15 +299,27 @@ class DiscordUserCheck(commands.Cog):
     async def _run_and_reply(self, send):
         members = await _gather_members(self.bot)
         if not members:
-            return await send([
-                f"__**{_TITLE}**__\n"
-                "No guild members are visible. Check that the bot has the "
-                "**Server Members Intent** enabled and the guild id is "
-                "configured."
-            ])
+            return await send(
+                Embed(
+                    title=_TITLE,
+                    description=(
+                        "No guild members are visible. Check that the bot has "
+                        "the **Server Members Intent** enabled and the guild "
+                        "id is configured."
+                    ),
+                    colour=0xE74C3C,
+                ),
+                [],
+            )
         report = _classify(members)
-        messages = _build_messages(_build_blocks(report))
-        await send(messages)
+        flagged = report["no_service"] or report["not_in_auth"]
+        header = Embed(
+            title=_TITLE,
+            description=_build_summary(report),
+            colour=0xE67E22 if flagged else 0x2ECC71,
+        )
+        messages = _build_messages(_build_member_blocks(report))
+        await send(header, messages)
 
     # ---- prefix --------------------------------------------------------
 
@@ -318,7 +330,8 @@ class DiscordUserCheck(commands.Cog):
         if not _channel_allowed(ctx.message.channel.id):
             return await ctx.message.add_reaction(chr(0x1F44E))  # 👎
 
-        async def send(messages):
+        async def send(header, messages):
+            await ctx.message.reply(embed=header)
             for m in messages:
                 await ctx.message.reply(m, allowed_mentions=_NO_PING)
 
@@ -343,9 +356,9 @@ class DiscordUserCheck(commands.Cog):
 
         await ctx.defer()
 
-        async def send(messages):
-            await ctx.respond(messages[0], allowed_mentions=_NO_PING)
-            for m in messages[1:]:
+        async def send(header, messages):
+            await ctx.respond(embed=header)
+            for m in messages:
                 await ctx.followup.send(m, allowed_mentions=_NO_PING)
 
         try:

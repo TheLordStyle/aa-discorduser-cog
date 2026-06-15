@@ -58,13 +58,15 @@ available in this channel"*; prefix: 👎 reaction).
 > • @Some Friend
 > &nbsp;&nbsp;↳ roles: Guest
 
-Each member is rendered as a real Discord mention (`<@id>`), so you can
-right-click them straight from the list to kick, ban, or manage roles. The
-report is sent as plain message text (not an embed) precisely so the mentions
-resolve reliably — mentions inside an embed only become clickable pills when
-the viewer's client already has that user cached, which is why some show up as
-a raw `<@id>`. Pings are suppressed via `allowed_mentions`, so running the
-report doesn't notify everyone it lists.
+The report leads with a coloured **embed header** carrying the title and the
+scan summary, followed by the member list as plain message text. Each member
+is rendered as a real Discord mention (`<@id>`), so you can right-click them
+straight from the list to kick, ban, or manage roles. The list is sent as
+message content rather than inside the embed precisely so the mentions resolve
+reliably — mentions inside an embed only become clickable pills when the
+viewer's client already has that user cached, which is why some would
+otherwise show up as a raw `<@id>`. Pings are suppressed via
+`allowed_mentions`, so running the report doesn't notify everyone it lists.
 
 ## Requirements
 
@@ -133,9 +135,10 @@ production state always returns to whatever's pinned in `requirements.txt`.
 /discordcheck
 ```
 
-Both forms post the report in the channel (split across multiple messages when
-long). The report runs against every guild configured for the bot
-(`get_all_servers()`), de-duplicating members who share more than one.
+Both forms post the report in the channel — an embed header with the summary,
+then the member list split across as many messages as needed. The report runs
+against every guild configured for the bot (`get_all_servers()`),
+de-duplicating members who share more than one.
 
 ## How it works
 
