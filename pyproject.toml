@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aa-discorduser-cog"
+version = "0.1.0"
+description = "Alliance Auth Discord cog that lists Discord members who aren't set up for the Discord service in auth"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "LordStyle" },
+]
+keywords = ["allianceauth", "eve-online", "discord", "aadiscordbot"]
+classifiers = [
+    "Environment :: Plugins",
+    "Framework :: Django",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+]
+
+# Intentionally no `dependencies = [...]` here — Alliance Auth and aadiscordbot
+# must already be installed in the host environment. Declaring them would risk
+# pip resolving conflicting versions on install.
+
+[project.urls]
+Repository = "https://github.com/TheLordStyle/aa-discorduser-cog"
+Issues = "https://github.com/TheLordStyle/aa-discorduser-cog/issues"
+Changelog = "https://github.com/TheLordStyle/aa-discorduser-cog/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+include = ["aa_discorduser*"]
